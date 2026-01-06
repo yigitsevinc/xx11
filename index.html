@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mahalle Yürüyüşü</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="toolbar">
+        <div>
+          <h1>Mahalle Simülatörü</h1>
+          <p>Küçük bir mahalle: sokaklar, caddeler, kaldırımlarda insanlar ve yollarda araçlar.</p>
+        </div>
+        <div class="toolbar__controls">
+          <label class="toggle">
+            <input id="diamondToggle" type="checkbox" />
+            Baklava görünüm
+          </label>
+          <button id="playToggle" type="button">Duraklat</button>
+          <button id="addPersonBtn" type="button">Yaya Ekle</button>
+          <button id="addCarBtn" type="button">Araç Ekle</button>
+          <button id="resetBtn" type="button">Yeniden Başlat</button>
+        </div>
+      </header>
+
+      <main class="stage">
+        <div class="legend">
+          <div><span class="swatch swatch--road"></span>Yol</div>
+          <div><span class="swatch swatch--sidewalk"></span>Kaldırım</div>
+          <div><span class="swatch swatch--lot"></span>Ev/Bina Alanı</div>
+          <div><span class="swatch swatch--park"></span>Park/Boş Alan</div>
+          <div id="status" class="status" aria-live="polite"></div>
+        </div>
+        <canvas id="map" width="720" height="720" aria-label="Mahalle haritası"></canvas>
+      </main>
+
+      <section class="instructions">
+        <h2>Görselleri eklemeye hazır alan</h2>
+        <p>
+          Harita kare ızgara üzerinde çiziliyor. <code>main.js</code> içindeki <strong>ASSETS</strong>
+          objesine görsel URL'leri ekleyerek yol/ev/araba/insan gibi öğeleri kolayca
+          değiştirebilirsiniz.
+        </p>
+        <p>
+          Haritaya tıklayarak kaldırıma yeni bir yaya ekleyebilir, yukarıdaki düğmelerle
+          araç/yaya sayısını artırabilir veya simülasyonu durdurabilirsiniz.
+        </p>
+      </section>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
+</html>
