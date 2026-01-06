@@ -2,6 +2,9 @@ const canvas = document.getElementById("map");
 const ctx = canvas.getContext("2d");
 const resetBtn = document.getElementById("resetBtn");
 const diamondToggle = document.getElementById("diamondToggle");
+const playToggle = document.getElementById("playToggle");
+const addPersonBtn = document.getElementById("addPersonBtn");
+const addCarBtn = document.getElementById("addCarBtn");
 const statusEl = document.getElementById("status");
 
 const GRID_SIZE = 12;
@@ -45,6 +48,7 @@ let people = [];
 let cars = [];
 let simMinutes = 8 * 60 + 30;
 let lastFrame = 0;
+let isPaused = false;
 
 const personProfiles = [
   { name: "komşu", speed: [0.013, 0.018], size: 0.22, color: "#ef4444" },
@@ -316,6 +320,32 @@ function spawnEntities() {
   cars = Array.from({ length: 6 }, (_, index) => createCar(index));
 }
 
+function createPersonAt(point) {
+  const { path, index } = findClosestPath(sidewalkPaths, point);
+  if (!path) {
+    return null;
+  }
+  const person = createPerson(people.length + 1);
+  person.path = path;
+  person.progress = index / path.length;
+  person.wait = randomBetween(0, 2);
+  return person;
+}
+
+function createCarAt(point) {
+  const profile = carProfiles[Math.floor(Math.random() * carProfiles.length)];
+  const { path, index } = findClosestPath(roadPaths, point);
+  if (!path) {
+    return null;
+  }
+  const car = createCar(cars.length + 1);
+  car.profile = profile;
+  car.path = path;
+  car.progress = index / path.length;
+  car.wait = randomBetween(0, 2);
+  return car;
+}
+
 function updateTime(delta) {
   simMinutes = (simMinutes + delta * TIME_SCALE) % (24 * 60);
 }
@@ -519,8 +549,10 @@ function updateStatus() {
 function animate(timestamp) {
   const delta = Math.min((timestamp - lastFrame) / 1000, 0.05);
   lastFrame = timestamp;
-  updateTime(delta);
-  updateEntities(delta);
+  if (!isPaused) {
+    updateTime(delta);
+    updateEntities(delta);
+  }
   drawMap();
   updateStatus();
   requestAnimationFrame(animate);
@@ -538,7 +570,65 @@ diamondToggle.addEventListener("change", (event) => {
   document.body.classList.toggle("diamond", event.target.checked);
 });
 
+playToggle.addEventListener("click", () => {
+  isPaused = !isPaused;
+  playToggle.textContent = isPaused ? "Devam Et" : "Duraklat";
+});
+
+addPersonBtn.addEventListener("click", () => {
+  const person = createPersonAt(landmarks.market);
+  if (person) {
+    people.push(person);
+  }
+});
+
+addCarBtn.addEventListener("click", () => {
+  const car = createCarAt(landmarks.market);
+  if (car) {
+    cars.push(car);
+  }
+});
+
+canvas.addEventListener("click", (event) => {
+  const point = getGridPoint(event);
+  const person = createPersonAt(point);
+  if (person) {
+    people.push(person);
+  }
+});
+
 loadAssets().then(() => {
   resetSimulation();
   requestAnimationFrame(animate);
 });
+
+function findClosestPath(paths, point) {
+  let closestPath = null;
+  let closestIndex = 0;
+  let closestDistance = Number.POSITIVE_INFINITY;
+
+  paths.forEach((path) => {
+    path.forEach((node, index) => {
+      const dist = Math.abs(node.x - point.x) + Math.abs(node.y - point.y);
+      if (dist < closestDistance) {
+        closestDistance = dist;
+        closestIndex = index;
+        closestPath = path;
+      }
+    });
+  });
+
+  return { path: closestPath, index: closestIndex };
+}
+
+function getGridPoint(event) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const x = (event.clientX - rect.left) * scaleX;
+  const y = (event.clientY - rect.top) * scaleY;
+  return {
+    x: Math.max(0, Math.min(GRID_SIZE - 1, Math.floor(x / TILE_SIZE))),
+    y: Math.max(0, Math.min(GRID_SIZE - 1, Math.floor(y / TILE_SIZE))),
+  };
+}
